@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <algorithm>
+
 using namespace std;
 
 struct processo{
@@ -14,7 +15,7 @@ struct processo{
 };
 
 vector<processo> processList;
-int tempoProcess[10];//guarda tempo que cada processo foi processado
+int tempoProcess[10], tempoProcessRR[10];//guarda tempo que cada processo foi processado
 
 bool compareFCFS(processo a, processo b){
 	return a.arrival <= b.arrival;
@@ -63,9 +64,26 @@ void * PsPreemp(void *data)//Priority Schedule Preemptivo
 
 void * RR(void *data)//Round Robin
 {
-    for(int i=0;i<100;i++)
+	int etapas = 0;//Numero total de etapas de todos os processos
+	sort (processList.begin(), processList.begin()+10, compareFCFS);
+	for(int i=0;i<processList.size();i++)
     { 
-        
+        cout<<processList[i].arrival<<"      "<<processList[i].time<<"     "<<processList[i].priority<<" - Processo "<<i+1<<endl;
+        etapas += processList[i].time;
+    } 
+	
+    for(int i=0; i < 100; i++)
+    {
+		if(tempoProcessRR[i%10] != processList[i%10].time){
+        	cout<<"Etapa "<<tempoProcessRR[i%10]+1<<" de "<<processList[i%10].time<<" do processo "<< (i%10)+1 <<endl;
+        	tempoProcessRR[i%10]++;
+		} 
+        if(tempoProcessRR[i%10] == processList[i%10].time && processList[i%10].finished == false){
+			processList[i%10].finished = true;
+			cout<<"Processo "<<(i%10)+1<<" terminou."<<endl;
+		}
+		
+		
     }     
 }
 
@@ -100,12 +118,15 @@ int main(int argc, char *argv[])
     // creating thread objects
     pthread_t thrd_1;
     pthread_t thrd_2;
+    pthread_t thrd_3;
     // create thread
-    pthread_create(&thrd_1,NULL,Fcfs,(void *)&a);
-    pthread_create(&thrd_2,NULL,PsPreemp,(void *)0);   
+    //pthread_create(&thrd_1,NULL,Fcfs,(void *)&a);
+    //pthread_create(&thrd_2,NULL,PsPreemp,(void *)0);   
+    pthread_create(&thrd_3,NULL,RR,(void *)0); 
 	 
-    pthread_join(thrd_1, (void **)&status);
-    pthread_join(thrd_2, (void **)&status);
+    //pthread_join(thrd_1, (void **)&status);
+    //pthread_join(thrd_2, (void **)&status);
+    pthread_join(thrd_3, (void **)&status);
     
     system("PAUSE");
     return 0;
