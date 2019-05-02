@@ -14,32 +14,33 @@ struct processo{
 	bool finished;
 };
 
-vector<processo> processList;
-int tempoProcess[10], tempoProcessRR[10];//guarda tempo que cada processo foi processado
+vector<processo> processListRR, processListFCFS, processListPS;
+int tempoProcessFCFS[10], tempoProcessRR[10], tempoProcessPS[10];//guarda tempo que cada processo foi processado
 
 bool compareFCFS(processo a, processo b){
 	return a.arrival <= b.arrival;
 }
 
-void * Fcfs(void *data)//Firs Come First Service Nao Preemptivo
+void Fcfs()//Firs Come First Service Nao Preemptivo
 {
-	int value = *((int *)data);
-	sort (processList.begin(), processList.begin()+10, compareFCFS);
+	cout<<"Arrival "<<"Time "<<"Priority "<<endl;
 	
-	for(int i=0;i<processList.size();i++)
+	sort (processListFCFS.begin(), processListFCFS.begin()+10, compareFCFS);
+	
+	for(int i=0;i<processListFCFS.size();i++)
     { 
-        cout<<processList[i].arrival<<"      "<<processList[i].time<<"     "<<processList[i].priority<<" - Processo "<<i+1<<endl;
+        cout<<processListFCFS[i].arrival<<"      "<<processListFCFS[i].time<<"     "<<processListFCFS[i].priority<<" - Processo "<<i+1<<endl;
     } 
 	
-    for(int i=0;i<processList.size();i++)
+    for(int i=0;i<processListFCFS.size();i++)
     { 
     	cout<<"Etapa do processamento: "<<endl;
-        for(int j=0; j<processList[i].time; j++){
-        	cout<<"Etapa "<<j+1<<" de "<<processList[i].time<<endl;
-        	tempoProcess[i]++;
+        for(int j=0; j<processListFCFS[i].time; j++){
+        	cout<<"Etapa "<<j+1<<" de "<<processListFCFS[i].time<<endl;
+        	tempoProcessFCFS[i]++;
 		}
-		if(tempoProcess[i] == processList[i].time){
-			processList[i].finished = true;
+		if(tempoProcessFCFS[i] == processListFCFS[i].time){
+			processListFCFS[i].finished = true;
 			cout<<"Processo "<<i+1<<" terminou."<<endl;
 		}
 		
@@ -53,33 +54,56 @@ bool comparePS(processo a, processo b){
 	else if(a.priority > b.priority)return 0;
 }
 
-void * PsPreemp(void *data)//Priority Schedule Preemptivo
+void PsPreemp()//Priority Schedule Preemptivo
 {
-	sort (processList.begin(), processList.begin()+10, comparePS);
-    for(int i=0;i<processList.size();i++)
+	cout<<"Arrival "<<"Time "<<"Priority "<<endl;
+	int tempo = 0, prioridadeMaior = 6, posPrioridadeMaior = 0, processosTerminados = 0;
+	sort (processListPS.begin(), processListPS.begin()+10, comparePS);
+    for(int i=0;i<processListPS.size();i++)
     { 
-        //cout<<processList[i].arrival<<"      "<<processList[i].time<<"     "<<processList[i].priority<<endl;
-    }     
+        cout<<processListPS[i].arrival<<"      "<<processListPS[i].time<<"     "<<processListPS[i].priority<<" - Processo "<<i+1<<endl;
+    }
+	
+	for(int i = 0; i < 100; i++){
+		for(int j = 0; j < processListPS.size(); j++){
+			if(processListPS[j].arrival <= tempo && processListPS[j].priority < prioridadeMaior && processListPS[j].finished == false){
+				prioridadeMaior = processListPS[j].priority;
+				posPrioridadeMaior = j;
+			}
+		}
+		if(tempoProcessPS[posPrioridadeMaior] != processListPS[posPrioridadeMaior].time){
+        	cout<<"Etapa "<<tempoProcessPS[posPrioridadeMaior]+1<<" de "<<processListPS[posPrioridadeMaior].time<<" do processo "<< (posPrioridadeMaior)+1<<endl;
+        	tempoProcessPS[posPrioridadeMaior]++;
+		} 
+        if(tempoProcessPS[posPrioridadeMaior] == processListPS[posPrioridadeMaior].time && processListRR[posPrioridadeMaior].finished == false && processosTerminados < 10 ){
+			processListPS[posPrioridadeMaior].finished = true;
+			cout<<"Processo "<<(posPrioridadeMaior)+1<<" terminou."<<endl;
+			prioridadeMaior = 6;
+			processosTerminados++;
+		}
+		tempo++;
+	}     
 }
 
-void * RR(void *data)//Round Robin
+void RR()//Round Robin
 {
+	cout<<"Arrival "<<"Time "<<"Priority "<<endl;
 	int etapas = 0;//Numero total de etapas de todos os processos
-	sort (processList.begin(), processList.begin()+10, compareFCFS);
-	for(int i=0;i<processList.size();i++)
+	sort (processListRR.begin(), processListRR.begin()+10, compareFCFS);
+	for(int i=0;i<processListRR.size();i++)
     { 
-        cout<<processList[i].arrival<<"      "<<processList[i].time<<"     "<<processList[i].priority<<" - Processo "<<i+1<<endl;
-        etapas += processList[i].time;
+        cout<<processListRR[i].arrival<<"      "<<processListRR[i].time<<"     "<<processListRR[i].priority<<" - Processo "<<i+1<<endl;
+        etapas += processListRR[i].time;
     } 
 	
     for(int i=0; i < 100; i++)
     {
-		if(tempoProcessRR[i%10] != processList[i%10].time){
-        	cout<<"Etapa "<<tempoProcessRR[i%10]+1<<" de "<<processList[i%10].time<<" do processo "<< (i%10)+1 <<endl;
+		if(tempoProcessRR[i%10] != processListRR[i%10].time){
+        	cout<<"Etapa "<<tempoProcessRR[i%10]+1<<" de "<<processListRR[i%10].time<<" do processo "<< (i%10)+1 <<endl;
         	tempoProcessRR[i%10]++;
 		} 
-        if(tempoProcessRR[i%10] == processList[i%10].time && processList[i%10].finished == false){
-			processList[i%10].finished = true;
+        if(tempoProcessRR[i%10] == processListRR[i%10].time && processListRR[i%10].finished == false){
+			processListRR[i%10].finished = true;
 			cout<<"Processo "<<(i%10)+1<<" terminou."<<endl;
 		}
 		
@@ -106,28 +130,34 @@ int main(int argc, char *argv[])
     	processAux.time = numeroAleatorio(1, 10);
     	processAux.finished = false;
     
-    	processList.push_back(processAux);
+    	processListFCFS.push_back(processAux);
+    	processListRR.push_back(processAux);
+    	processListPS.push_back(processAux);
 	}
 	
     
-    
-    cout<<"Arrival "<<"Time "<<"Priority "<<endl;
+    cout<<endl<<endl<<endl<<"Algoritmo Priority Schedule Preemptivo"<<endl<<endl;
+    PsPreemp();
+    cout<<endl<<endl<<endl<<"Algoritmo FCFS"<<endl<<endl;
+    Fcfs();
+    cout<<endl<<endl<<endl<<"Algoritmo Round Robin"<<endl<<endl;
+    RR();
     
 	
       
-    // creating thread objects
+    /*// creating thread objects
     pthread_t thrd_1;
     pthread_t thrd_2;
     pthread_t thrd_3;
     // create thread
     //pthread_create(&thrd_1,NULL,Fcfs,(void *)&a);
-    //pthread_create(&thrd_2,NULL,PsPreemp,(void *)0);   
-    pthread_create(&thrd_3,NULL,RR,(void *)0); 
+    pthread_create(&thrd_2,NULL,PsPreemp,(void *)0);   
+    //pthread_create(&thrd_3,NULL,RR,(void *)0); 
 	 
     //pthread_join(thrd_1, (void **)&status);
     //pthread_join(thrd_2, (void **)&status);
     pthread_join(thrd_3, (void **)&status);
     
-    system("PAUSE");
+    system("PAUSE");*/
     return 0;
 }
